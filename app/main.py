@@ -164,6 +164,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     async def activity_page() -> FileResponse:
         return page_response("activity.html")
 
+    @app.get("/reservations", include_in_schema=False)
+    async def reservations_page() -> FileResponse:
+        return page_response("reservations.html")
+
     @app.get("/aboutus", include_in_schema=False)
     async def aboutus_page() -> FileResponse:
         return page_response("aboutus.html")
@@ -465,3 +469,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
 
 app = create_app()
+
+
+
+

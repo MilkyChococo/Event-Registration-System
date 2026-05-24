@@ -21,7 +21,7 @@ It currently includes:
 - cancel reservations and review registration history
 - balance top-up by QR flow and transaction history
 - notification bell with request lifecycle updates and event reminders
-- event request submission, resubmission, and withdrawal from `Your activity`
+- event request submission, resubmission, and withdrawal from `Your event`
 - location selection with a map-based location picker
 
 ### Admin scope

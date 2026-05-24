@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Your Activity | EventHub Verify</title>
-    <link rel="stylesheet" href="/static/styles.css?v=20260406-contact-stack-fab" />
+    <title>Your Event | EventHub Verify</title>
+    <link rel="stylesheet" href="/static/styles.css?v=20260426-request-actions-nowrap" />
   </head>
   <body>
     <div class="app-shell">
@@ -15,7 +15,9 @@
             <span class="admin-topbar-separator" aria-hidden="true">|</span>
             <a class="admin-nav-button" href="/aboutus" data-testid="aboutus-link">About Us</a>
             <span class="admin-topbar-separator" aria-hidden="true">|</span>
-            <a class="admin-nav-button is-active" href="/activity" aria-current="page" data-testid="activity-link">Your activity</a>
+            <a class="admin-nav-button is-active" href="/activity" aria-current="page" data-testid="activity-link">Your event</a>
+            <span class="admin-topbar-separator" aria-hidden="true">|</span>
+            <a class="admin-nav-button" href="/reservations" data-testid="reservation-link">Your reservation</a>
           </div>
           <div id="activity-admin-topbar-nav" class="admin-topbar-nav hidden" data-testid="admin-topbar-nav">
             <span class="admin-topbar-separator" aria-hidden="true">|</span>
@@ -50,51 +52,36 @@
               <div class="profile-avatar-large" data-testid="activity-avatar">U</div>
             </div>
             <div class="profile-header-copy">
-              <p class="eyebrow">Your activity</p>
-              <h1 id="activity-title">Loading your activity...</h1>
-              <p id="activity-hero-copy" class="hero-copy">Track the events you joined and manage the ones you host.</p>
+              <p class="eyebrow">Your event</p>
+              <h1 id="activity-title">Loading your events...</h1>
+              <p id="activity-hero-copy" class="hero-copy">Track your event requests, approval status, and hosted events in one place.</p>
             </div>
           </div>
           <div class="activity-header-metrics">
             <article class="profile-field">
-              <span>Joined events</span>
+              <span>Event accepted</span>
               <strong id="activity-joined-count">0</strong>
             </article>
             <article class="profile-field">
-              <span>Active reservations</span>
+              <span>Event pending</span>
               <strong id="activity-active-count">0</strong>
             </article>
             <article class="profile-field">
-              <span>My events</span>
+              <span>Needs revision</span>
               <strong id="activity-owned-count">0</strong>
             </article>
           </div>
         </section>
 
         <section class="page-section">
-          <div class="billing-shell billing-accordion" aria-label="Your activity panels">
-            <section class="billing-accordion-item" data-activity-item="registrations">
-              <button class="billing-sidebar-item" data-activity-toggle="registrations" type="button" aria-expanded="true">
-                <div>
-                  <h3>Event registration archive</h3>
-                </div>
-                <span class="billing-sidebar-icon" data-activity-icon>^</span>
-              </button>
-              <section class="admin-card billing-panel is-active" data-activity-panel="registrations">
-                <div class="section-heading compact-heading">
-                </div>
-                <div id="activity-joined-list" class="event-match-list activity-registration-list">Loading your event activity...</div>
-              </section>
-            </section>
-
-            <section class="billing-accordion-item" data-activity-item="studio">
-              <button class="billing-sidebar-item" data-activity-toggle="studio" type="button" aria-expanded="false">
+          <div class="billing-shell billing-accordion" aria-label="Your event panels">            <section class="billing-accordion-item" data-activity-item="studio">
+              <button class="billing-sidebar-item" data-activity-toggle="studio" type="button" aria-expanded="true">
                 <div>
                   <h3>Event request studio</h3>
                 </div>
-                <span class="billing-sidebar-icon" data-activity-icon>v</span>
+                <span class="billing-sidebar-icon" data-activity-icon>^</span>
               </button>
-              <section class="admin-card billing-panel hidden" data-activity-panel="studio">
+              <section class="admin-card billing-panel is-active" data-activity-panel="studio">
                 <div class="section-heading compact-heading activity-studio-head">
                   <button class="primary-button" id="activity-open-request-modal" type="button">Send new request</button>
                 </div>
@@ -209,7 +196,7 @@
           <div>
             <p class="eyebrow">Delete request</p>
             <h3 id="activity-delete-title">Are you sure you want to delete this request?</h3>
-            <p class="subtle activity-delete-copy" id="activity-delete-copy">This request will be removed from your activity queue and the admin review flow.</p>
+            <p class="subtle activity-delete-copy" id="activity-delete-copy">This request will be removed from your event queue and the admin review flow.</p>
           </div>
           <button class="secondary-button" id="activity-delete-close" type="button" data-activity-delete-action="close">Close</button>
         </div>
@@ -220,9 +207,16 @@
       </div>
     </div>
 
-    <script type="module" src="/static/activity.js?v=20260406-issue-report-fab"></script>
+    <script type="module" src="/static/activity.js?v=20260426-activity-status-metrics"></script>
   </body>
 </html>
+
+
+
+
+
+
+
 
 
 

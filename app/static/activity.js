@@ -26,7 +26,6 @@ const activityAdminTopbarNav = document.querySelector("#activity-admin-topbar-na
 const joinedCount = document.querySelector("#activity-joined-count");
 const activeCount = document.querySelector("#activity-active-count");
 const ownedCount = document.querySelector("#activity-owned-count");
-const joinedList = document.querySelector("#activity-joined-list");
 const ownedEventForm = document.querySelector("#activity-owned-event-form");
 const ownedEventId = document.querySelector("#activity-owned-event-id");
 const ownedEventTitle = document.querySelector("#activity-owned-event-title");
@@ -65,12 +64,11 @@ const activityImageGallery = document.querySelector("#activity-image-gallery");
 
 const state = {
   user: null,
-  tickets: [],
   ownedEvents: [],
   editingEventId: null,
   pendingDeleteEventId: null,
   draftImages: [],
-  openPanels: new Set(["registrations"]),
+  openPanels: new Set(["studio"]),
 };
 
 function toTitleCase(value) {
@@ -165,7 +163,7 @@ function openDeleteConfirmModal(eventId) {
   }
   state.pendingDeleteEventId = Number(eventId);
   if (activityDeleteCopy) {
-    activityDeleteCopy.textContent = `Delete "${event.title}" from your activity queue? This cannot be undone.`;
+    activityDeleteCopy.textContent = `Delete "${event.title}" from your event queue? This cannot be undone.`;
   }
   activityDeleteModal.classList.remove("hidden");
   activityDeleteModal.setAttribute("aria-hidden", "false");
@@ -200,16 +198,6 @@ async function confirmOwnedEventDeletion() {
   await loadActivityData();
 }
 
-function ticketStatusLabel(status) {
-  if (status === "checked_in") {
-    return "Checked in";
-  }
-  if (status === "cancelled") {
-    return "Cancelled";
-  }
-  return "Confirmed";
-}
-
 function hasValidatedMapLocation(input, latitudeInput, longitudeInput) {
   const locationValue = input?.value.trim() || "";
   const latitudeValue = latitudeInput?.value.trim() || "";
@@ -223,26 +211,7 @@ function hasValidatedMapLocation(input, latitudeInput, longitudeInput) {
   return false;
 }
 
-function buildCountdownState(startAt) {
-  const startDate = new Date(startAt || "");
-  if (Number.isNaN(startDate.getTime())) {
-    return {
-      label: "Starts in 0d0h0m",
-      isUrgent: false,
-    };
-  }
 
-  const diffMs = Math.max(startDate.getTime() - Date.now(), 0);
-  const totalMinutes = Math.floor(diffMs / 60000);
-  const days = Math.floor(totalMinutes / (60 * 24));
-  const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
-  const minutes = totalMinutes % 60;
-
-  return {
-    label: `Starts in ${days}d${hours}h${minutes}m`,
-    isUrgent: diffMs > 0 && diffMs <= 86400000,
-  };
-}
 
 function setDraftImages(images) {
   state.draftImages = normalizeImageList(images);
@@ -476,77 +445,22 @@ function fillOwnedEventForm(event) {
 }
 
 function renderMetrics() {
-  const activeReservations = state.tickets.filter((ticket) => ticket.status === "confirmed" || ticket.status === "checked_in");
+  const approvedRequests = state.ownedEvents.filter((event) => String(event.approval_status || "approved").trim().toLowerCase() === "approved");
+  const pendingRequests = state.ownedEvents.filter((event) => String(event.approval_status || "").trim().toLowerCase() === "pending");
+  const revisionRequests = state.ownedEvents.filter((event) => String(event.approval_status || "").trim().toLowerCase() === "rejected");
+
   if (joinedCount) {
-    joinedCount.textContent = String(state.tickets.length);
+    joinedCount.textContent = String(approvedRequests.length);
   }
   if (activeCount) {
-    activeCount.textContent = String(activeReservations.length);
+    activeCount.textContent = String(pendingRequests.length);
   }
   if (ownedCount) {
-    ownedCount.textContent = String(state.ownedEvents.length);
+    ownedCount.textContent = String(revisionRequests.length);
   }
 }
 
-function renderJoinedEvents() {
-  if (!joinedList) {
-    return;
-  }
 
-  joinedList.classList.remove("is-placeholder");
-
-  if (!state.tickets.length) {
-    joinedList.classList.add("is-placeholder");
-    joinedList.innerHTML = `
-      <article class="event-match-empty activity-empty-card">
-        <strong>No event registration yet</strong>
-        <p>Reserve an event from the dashboard and it will appear here with quantity, total spend, and status.</p>
-      </article>
-    `;
-    return;
-  }
-
-  joinedList.innerHTML = state.tickets
-    .map((ticket) => {
-      const countdown = buildCountdownState(ticket.start_at);
-      return `
-        <article class="event-match-card activity-registration-card">
-          <div class="event-match-copy activity-registration-copy">
-            <div>
-              <h3>${escapeHtml(ticket.title)}</h3>
-              <p class="event-match-time">${escapeHtml(formatDateTime(ticket.start_at))}</p>
-            </div>
-            <dl class="event-match-meta activity-registration-meta">
-              <div>
-                <dt>Location</dt>
-                <dd>${escapeHtml(ticket.location)}</dd>
-              </div>
-              <div>
-                <dt>Status</dt>
-                <dd>${escapeHtml(ticketStatusLabel(ticket.status))}</dd>
-              </div>
-              <div>
-                <dt>Quantity</dt>
-                <dd>${escapeHtml(String(ticket.quantity || 1))} ticket${Number(ticket.quantity || 1) > 1 ? "s" : ""}</dd>
-              </div>
-              <div>
-                <dt>Total</dt>
-                <dd>${escapeHtml(formatCurrency(ticket.total_price || ticket.ticket_price || 0))}</dd>
-              </div>
-              <div class="activity-countdown-card ${countdown.isUrgent ? "is-urgent" : ""}">
-                <dt>Time Remains</dt>
-                <dd>${escapeHtml(countdown.label)}</dd>
-              </div>
-            </dl>
-          </div>
-          <div class="event-match-actions activity-registration-actions">
-            <a class="detail-link" href="/events/${ticket.event_id}/view">View detail</a>
-          </div>
-        </article>
-      `;
-    })
-    .join("");
-}
 
 function renderOwnedEvents() {
   if (!ownedEventList) {
@@ -564,7 +478,7 @@ function renderOwnedEvents() {
       const reviewNote = event.review_note ? `<p class="subtle activity-request-note">${escapeHtml(event.review_note)}</p>` : "";
       return `
         <article class="owned-event-item activity-request-item" data-event-id="${event.id}">
-          <div>
+          <div class="activity-request-copy">
             <div class="activity-request-head">
               <strong>${escapeHtml(event.title)}</strong>
               <span class="image-order-chip manager-status-badge is-${status}">${escapeHtml(formatApprovalStatus(status))}</span>
@@ -587,10 +501,10 @@ function renderOwnedEvents() {
 function populateHeader(user) {
   renderUserAvatar(activityAvatar, user, "profile-avatar-image");
   if (activityTitle) {
-    activityTitle.textContent = `${user.name}'s activity`;
+    activityTitle.textContent = `${user.name}'s events`;
   }
   if (activityHeroCopy) {
-    activityHeroCopy.textContent = `${user.email} - track joined events and monitor your event requests in one place.`;
+    activityHeroCopy.textContent = `${user.email} - track your event requests, approval status, and hosted events in one place.`;
   }
   if (activityWelcomeText) {
     activityWelcomeText.textContent = `Welcome, ${user.name}`;
@@ -604,11 +518,9 @@ function populateHeader(user) {
 }
 
 async function loadActivityData() {
-  const [tickets, ownedEvents] = await Promise.all([api("/api/me/registrations"), api("/api/me/owned-events")]);
-  state.tickets = Array.isArray(tickets) ? tickets : [];
+  const ownedEvents = await api("/api/me/owned-events");
   state.ownedEvents = Array.isArray(ownedEvents) ? ownedEvents : [];
   renderMetrics();
-  renderJoinedEvents();
   renderOwnedEvents();
 }
 
@@ -880,5 +792,11 @@ async function boot() {
 }
 
 boot();
+
+
+
+
+
+
 
 

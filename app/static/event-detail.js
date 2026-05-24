@@ -92,7 +92,10 @@ const state = {
 
 function mapBackLabel(pathname) {
   if (pathname === "/activity") {
-    return "Back to activity";
+    return "Back to your event";
+  }
+  if (pathname === "/reservations") {
+    return "Back to your reservation";
   }
   if (pathname === "/admin/manager") {
     return "Back to manager";
@@ -830,6 +833,9 @@ async function boot() {
 }
 
 boot();
+
+
+
 
 
 

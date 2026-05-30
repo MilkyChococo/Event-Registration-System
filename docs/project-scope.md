@@ -1,5 +1,7 @@
 # Project Scope
 
+Created date: 26/01/2026
+
 ## Problem statement
 
 The project addresses the need for a centralized and verifiable event registration system. Manual or fragmented event registration often leads to duplicate reservations, unclear seat tracking, delayed updates, and poor moderation of user-submitted events.

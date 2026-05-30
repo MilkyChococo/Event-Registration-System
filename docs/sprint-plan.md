@@ -2,6 +2,8 @@
 
 ## Sprint 0 - Setup and verification baseline
 
+Timeline: 26/01 - 08/02
+
 Goals:
 
 - finalize scope
@@ -20,6 +22,8 @@ Deliverables:
 
 ## Sprint 1 - Authentication and event discovery
 
+Timeline: 09/02 - 01/03
+
 Stories:
 
 - US-03
@@ -35,6 +39,8 @@ Verification:
 
 ## Sprint 2 - Registration core
 
+Timeline: 02/03 - 22/03
+
 Stories:
 
 - US-07
@@ -49,6 +55,8 @@ Verification:
 
 ## Sprint 3 - Admin features and reporting
 
+Timeline: 23/03 - 12/04
+
 Stories:
 
 - US-10
@@ -62,6 +70,8 @@ Verification:
 - Playwright critical test for admin event creation
 
 ## Sprint 4 - Hardening and submission
+
+Timeline: 13/04 - 02/05
 
 Goals:
 

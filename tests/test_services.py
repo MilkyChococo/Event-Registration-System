@@ -22,6 +22,15 @@ class EventRegistrationServiceTests(unittest.TestCase):
         self.db = Database(settings.mongo_uri, settings.mongo_db_name, use_mock=settings.use_mock_db)
         self.service = EventRegistrationService(self.db)
         self.service.initialize(seed_demo=True)
+        self.db.events.update_many(
+            {},
+            {
+                "$set": {
+                    "start_at": "2026-07-01T18:00:00",
+                    "registration_deadline": "2026-07-01T12:00:00",
+                }
+            },
+        )
         self.student = self.service.authenticate("student@example.com", "Student123!")
         self.admin = self.service.authenticate("admin@example.com", "Admin123!")
 
@@ -75,7 +84,7 @@ class EventRegistrationServiceTests(unittest.TestCase):
                 "title": "Limited Event",
                 "description": "Small event used to verify capacity handling.",
                 "location": "Lab X",
-                "start_at": "2026-05-01T09:00:00",
+                "start_at": "2026-07-01T09:00:00",
                 "capacity": 1,
                 "price": 0,
             },
@@ -95,7 +104,7 @@ class EventRegistrationServiceTests(unittest.TestCase):
                 "title": "Cancelable Event",
                 "description": "Used to verify cancellation returns the seat to the pool.",
                 "location": "Lab Y",
-                "start_at": "2026-05-03T10:00:00",
+                "start_at": "2026-07-03T10:00:00",
                 "capacity": 1,
                 "price": 0,
             },
@@ -116,7 +125,7 @@ class EventRegistrationServiceTests(unittest.TestCase):
                 "title": "Quantity Event",
                 "description": "Used to verify multi-ticket reservations and account limits.",
                 "location": "Studio Q",
-                "start_at": "2026-05-07T18:00:00",
+                "start_at": "2026-07-07T18:00:00",
                 "capacity": 12,
                 "price": 15,
             },
@@ -158,7 +167,7 @@ class EventRegistrationServiceTests(unittest.TestCase):
                 "title": "Owner Blocked Event",
                 "description": "Used to prevent owner self-reservation wallet loops.",
                 "location": "Studio O",
-                "start_at": "2026-05-08T18:00:00",
+                "start_at": "2026-07-08T18:00:00",
                 "capacity": 12,
                 "price": 15,
             },
@@ -168,6 +177,25 @@ class EventRegistrationServiceTests(unittest.TestCase):
             self.service.register_for_event(self.admin["id"], event["id"], {"quantity": 1})
 
         self.assertEqual(context.exception.code, "OWNER_CANNOT_REGISTER")
+
+    def test_registration_is_blocked_after_event_has_started(self) -> None:
+        event = self.service.create_event(
+            self.admin["id"],
+            {
+                "title": "Started Event",
+                "description": "Used to verify reservations close after start time.",
+                "location": "Past Hall",
+                "start_at": "2026-04-01T18:00:00",
+                "capacity": 12,
+                "price": 15,
+            },
+        )
+
+        with self.assertRaises(ServiceError) as context:
+            self.service.register_for_event(self.student["id"], event["id"], {"quantity": 1})
+
+        self.assertEqual(context.exception.code, "EVENT_ALREADY_STARTED")
+        self.assertTrue(self.service.get_event(event["id"], user_id=self.student["id"])["has_started"])
 
     def test_cancelled_registration_is_removed_after_one_day(self) -> None:
         event_id = self.service.list_events()[0]["id"]
@@ -250,7 +278,7 @@ class EventRegistrationServiceTests(unittest.TestCase):
                 "title": "Premium Reservation",
                 "description": "Used to verify insufficient balance handling during reservation.",
                 "location": "Vault Hall",
-                "start_at": "2026-05-18T19:00:00",
+                "start_at": "2026-07-18T19:00:00",
                 "capacity": 10,
                 "price": 200,
             },
@@ -462,7 +490,7 @@ class EventRegistrationServiceTests(unittest.TestCase):
                 "description": "A student-created community meetup for peer networking.",
                 "category": "Community",
                 "location": "Innovation Hub",
-                "start_at": "2026-05-30T18:00:00",
+                "start_at": "2026-07-30T18:00:00",
                 "capacity": 25,
                 "price": 10,
             },
@@ -502,7 +530,7 @@ class EventRegistrationServiceTests(unittest.TestCase):
                 "description": "A student-created community meetup for peer networking.",
                 "category": "Community",
                 "location": "Innovation Hub",
-                "start_at": "2026-05-30T18:00:00",
+                "start_at": "2026-07-30T18:00:00",
                 "capacity": 25,
                 "price": 10,
             },

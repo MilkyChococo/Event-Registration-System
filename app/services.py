@@ -700,6 +700,14 @@ class EventRegistrationService:
         now_reference = now_dt or datetime.now(timezone.utc)
         return now_reference >= self._event_payout_release_at(event_document)
 
+    def _event_has_started(self, event_document: dict[str, Any], now_dt: datetime | None = None) -> bool:
+        try:
+            start_at = parse_utc_timestamp(str(event_document.get("start_at") or ""))
+        except Exception:
+            return False
+        now_reference = now_dt or datetime.now(timezone.utc)
+        return start_at <= now_reference
+
     def _credit_event_escrow(self, event_id: int, amount: float) -> None:
         normalized_amount = round(max(float(amount or 0), 0), 2)
         if normalized_amount <= 0:
@@ -1117,6 +1125,7 @@ class EventRegistrationService:
             "registered_count": registered_count,
             "seats_left": max(capacity - registered_count, 0),
             "is_registered": is_registered,
+            "has_started": self._event_has_started(normalized),
         }
 
     def _serialize_notification(self, document: dict[str, Any]) -> dict[str, Any]:
@@ -2350,6 +2359,8 @@ class EventRegistrationService:
         event = self._normalize_event_document(event_document)
         if event["approval_status"] != APPROVAL_APPROVED:
             raise ServiceError(404, "EVENT_NOT_FOUND", "Event not found.")
+        if self._event_has_started(event):
+            raise ServiceError(409, "EVENT_ALREADY_STARTED", "This event has already started and can no longer accept reservations.")
         if int(event_document.get("created_by") or 0) == int(user_id):
             raise ServiceError(409, "OWNER_CANNOT_REGISTER", "Event owners cannot reserve tickets for their own event.")
 

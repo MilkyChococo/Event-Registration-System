@@ -113,6 +113,14 @@ function toTitleCase(value) {
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
+function eventHasStarted(event) {
+  if (event?.has_started === true) {
+    return true;
+  }
+  const startTime = new Date(event?.start_at || "").getTime();
+  return Number.isFinite(startTime) && startTime <= Date.now();
+}
+
 function formatApprovalStatus(status) {
   if (status === "pending") {
     return "Pending review";
@@ -296,7 +304,10 @@ function renderEventBoardState() {
 }
 
 function buildEventMatchMarkup(event) {
-  const registrationAction = event.is_registered
+  const hasStarted = eventHasStarted(event);
+  const registrationAction = hasStarted
+    ? `<button class="secondary-button" type="button" disabled>Started</button>`
+    : event.is_registered
     ? `<button class="secondary-button danger-button" data-action="cancel" data-id="${event.id}" type="button">Cancel</button>`
     : `<button class="primary-button" data-action="register" data-id="${event.id}" type="button" ${event.seats_left === 0 ? "disabled" : ""}>Reserve now</button>`;
   return `
@@ -409,6 +420,10 @@ function openDashboardRegistrationModal(eventId) {
   }
   if (selectedEvent.is_registered) {
     showToast("You already have a reservation for this event.");
+    return;
+  }
+  if (eventHasStarted(selectedEvent)) {
+    showToast("This event has already started.", "error");
     return;
   }
   if (selectedEvent.seats_left <= 0) {
@@ -878,10 +893,13 @@ function clearEventSlideTimer() {
 }
 
 function buildEventSlideMarkup(event) {
-  const registrationAction = event.is_registered
+  const hasStarted = eventHasStarted(event);
+  const registrationAction = hasStarted
+    ? `<button class="secondary-button" type="button" disabled>Started</button>`
+    : event.is_registered
     ? `<button class="secondary-button danger-button" data-action="cancel" data-id="${event.id}" type="button">Cancel</button>`
     : `<button class="primary-button" data-action="register" data-id="${event.id}" type="button" ${event.seats_left === 0 ? "disabled" : ""}>Reserve now</button>`;
-  const deadlineLabel = event.registration_deadline ? `Register by ${formatDateTime(event.registration_deadline)}` : "Open registration";
+  const deadlineLabel = hasStarted ? "Event started" : event.registration_deadline ? `Register by ${formatDateTime(event.registration_deadline)}` : "Open registration";
   const seatWarning = event.seats_left > 0 && event.seats_left <= 3 ? `<span class="pill pill-warning">Only ${escapeHtml(String(event.seats_left))} seats left</span>` : "";
   return `
     <section class="event-slide is-active" data-slide-id="${event.id}" data-testid="event-slide-${event.id}">

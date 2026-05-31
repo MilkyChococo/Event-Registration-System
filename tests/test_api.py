@@ -22,6 +22,15 @@ class ApiTests(unittest.TestCase):
         )
         self.client = TestClient(create_app(settings))
         self.client.__enter__()
+        self.client.app.state.service.db.events.update_many(
+            {},
+            {
+                "$set": {
+                    "start_at": "2026-07-01T18:00:00",
+                    "registration_deadline": "2026-07-01T12:00:00",
+                }
+            },
+        )
 
     def tearDown(self) -> None:
         self.client.__exit__(None, None, None)
@@ -91,7 +100,7 @@ class ApiTests(unittest.TestCase):
                 "title": "Forbidden Event",
                 "description": "This should fail for a normal user.",
                 "location": "Secret Room",
-                "start_at": "2026-05-11T10:00:00",
+                "start_at": "2026-07-11T10:00:00",
                 "capacity": 10,
                 "price": 50,
             },
@@ -189,7 +198,7 @@ class ApiTests(unittest.TestCase):
                 "title": "Verification Showcase",
                 "description": "Admin creates an event for the final sprint review.",
                 "location": "Main Hall",
-                "start_at": "2026-05-10T15:00:00",
+                "start_at": "2026-07-10T15:00:00",
                 "capacity": 42,
                 "price": 120,
             },
@@ -205,7 +214,7 @@ class ApiTests(unittest.TestCase):
                 "title": "Premium Reservation",
                 "description": "Expensive event used to verify insufficient balance responses.",
                 "location": "Vault Hall",
-                "start_at": "2026-05-12T20:00:00",
+                "start_at": "2026-07-12T20:00:00",
                 "capacity": 8,
                 "price": 250,
             },
@@ -237,7 +246,7 @@ class ApiTests(unittest.TestCase):
                 "title": "Draft Event",
                 "description": "Initial version before admin updates the event.",
                 "location": "Room D1",
-                "start_at": "2026-05-12T11:00:00",
+                "start_at": "2026-07-12T11:00:00",
                 "capacity": 15,
                 "price": 10,
             },
@@ -251,7 +260,7 @@ class ApiTests(unittest.TestCase):
                 "title": "Updated Draft Event",
                 "description": "Updated version after admin review.",
                 "location": "Room D2",
-                "start_at": "2026-05-12T13:00:00",
+                "start_at": "2026-07-12T13:00:00",
                 "capacity": 25,
                 "price": 25,
             },
@@ -271,7 +280,7 @@ class ApiTests(unittest.TestCase):
                 "title": "Image Draft Event",
                 "description": "Admin verifies gallery editing and removal.",
                 "location": "Room D3",
-                "start_at": "2026-05-14T14:00:00",
+                "start_at": "2026-07-14T14:00:00",
                 "capacity": 20,
                 "price": 15,
                 "image_urls": [
@@ -297,7 +306,7 @@ class ApiTests(unittest.TestCase):
                 "title": "Image Draft Event",
                 "description": "Admin verifies gallery editing and removal.",
                 "location": "Room D3",
-                "start_at": "2026-05-14T14:00:00",
+                "start_at": "2026-07-14T14:00:00",
                 "capacity": 20,
                 "price": 15,
                 "image_urls": [
@@ -322,7 +331,7 @@ class ApiTests(unittest.TestCase):
                 "title": "Image Draft Event",
                 "description": "Admin verifies gallery editing and removal.",
                 "location": "Room D3",
-                "start_at": "2026-05-14T14:00:00",
+                "start_at": "2026-07-14T14:00:00",
                 "capacity": 20,
                 "price": 15,
                 "image_urls": [],
@@ -377,7 +386,7 @@ class ApiTests(unittest.TestCase):
                 "title": "Quantity API Event",
                 "description": "API verifies quantity-based reservations on a single booking.",
                 "location": "Hall Q",
-                "start_at": "2026-05-18T19:00:00",
+                "start_at": "2026-07-18T19:00:00",
                 "capacity": 10,
                 "price": 12,
             },
@@ -490,7 +499,7 @@ class ApiTests(unittest.TestCase):
                 "description": "Student-created meetup for peer networking.",
                 "category": "Community",
                 "location": "Innovation Hub",
-                "start_at": "2026-05-30T18:00:00",
+                "start_at": "2026-07-30T18:00:00",
                 "capacity": 25,
                 "price": 10,
             },

@@ -368,6 +368,7 @@ class EventOutput(BaseModel):
     registered_count: int
     seats_left: int
     is_registered: bool
+    has_started: bool
 
 
 class AttendeeOutput(BaseModel):

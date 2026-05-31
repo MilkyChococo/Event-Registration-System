@@ -281,6 +281,14 @@ function shouldAutoOpenRegistration() {
   return new URLSearchParams(window.location.search).get("reserve") === "1";
 }
 
+function eventHasStarted(event) {
+  if (event?.has_started === true) {
+    return true;
+  }
+  const startTime = new Date(event?.start_at || "").getTime();
+  return Number.isFinite(startTime) && startTime <= Date.now();
+}
+
 function clearAutoOpenRegistrationFlag() {
   const url = new URL(window.location.href);
   url.searchParams.delete("reserve");
@@ -372,7 +380,7 @@ function renderRegistrationSummary() {
 }
 
 function openRegistrationModal() {
-  if (!state.event || state.event.is_registered || !detailRegistrationModal) {
+  if (!state.event || state.event.is_registered || eventHasStarted(state.event) || !detailRegistrationModal) {
     return;
   }
   const maxQuantity = Math.max(1, Math.min(5, Number(state.event.seats_left || 0) || 1));
@@ -583,6 +591,7 @@ function renderEvent() {
   }
 
   const isOwnerView = Boolean(state.ownerManagement);
+  const hasStarted = eventHasStarted(state.event);
   renderGallery();
   requestAnimationFrame(syncDetailPosterRail);
   detailTitle.textContent = state.event.title;
@@ -614,7 +623,7 @@ function renderEvent() {
   detailStartAt.textContent = formatDateTime(state.event.start_at);
   detailCategoryBadge.textContent = state.event.category || "Special Event";
   detailFormatBadge.textContent = state.event.event_format || "Offline";
-  detailDeadlineBadge.textContent = state.event.registration_deadline ? `Register by ${formatDateTime(state.event.registration_deadline)}` : "Registration open";
+  detailDeadlineBadge.textContent = hasStarted ? "Event started" : state.event.registration_deadline ? `Register by ${formatDateTime(state.event.registration_deadline)}` : "Registration open";
   detailRefundPolicy.textContent = state.event.refund_policy || "Refund policy will be announced soon.";
   detailCheckInPolicy.textContent = state.event.check_in_policy || "Check-in instructions will be announced soon.";
   detailContact.textContent = [state.event.contact_email, state.event.contact_phone].filter(Boolean).join(" - ") || "Support details will be announced soon.";
@@ -623,10 +632,10 @@ function renderEvent() {
   detailMapLink.classList.toggle("hidden", !hasMapTarget);
   renderSpeakerList(state.event.speaker_lineup || []);
   renderTicketTypeList(state.event.ticket_types || []);
-  detailStatus.textContent = isOwnerView ? "Owner view" : state.event.is_registered ? "Reserved" : "Not reserved yet";
-  registerButton.classList.toggle("hidden", state.event.is_registered || isOwnerView);
+  detailStatus.textContent = isOwnerView ? "Owner view" : hasStarted ? "Started" : state.event.is_registered ? "Reserved" : "Not reserved yet";
+  registerButton.classList.toggle("hidden", state.event.is_registered || isOwnerView || hasStarted);
   cancelButton.classList.toggle("hidden", !state.event.is_registered || isOwnerView);
-  registerButton.disabled = state.event.seats_left === 0;
+  registerButton.disabled = state.event.seats_left === 0 || hasStarted;
   renderRegistrationSummary();
 }
 
@@ -645,6 +654,10 @@ function maybeAutoOpenRegistration() {
   }
   if (state.event.is_registered) {
     showToast("You already have a reservation for this event.");
+    return;
+  }
+  if (eventHasStarted(state.event)) {
+    showToast("This event has already started.", "error");
     return;
   }
   if (state.event.seats_left <= 0) {

@@ -2012,6 +2012,70 @@ class EventRegistrationService:
         )
         return self.get_owned_event_management(user_id, event_id)
 
+    def remove_admin_event_registration(self, admin_id: int, event_id: int, registration_user_id: int, payload: dict[str, Any]) -> list[dict[str, Any]]:
+        if not self._is_admin_user_id(admin_id):
+            raise ServiceError(403, "ADMIN_REQUIRED", "Admin privileges are required.")
+
+        event_document = self.db.events.find_one({"id": event_id})
+        if not event_document:
+            raise ServiceError(404, "EVENT_NOT_FOUND", "Event not found.")
+
+        event_title = str(event_document.get("title") or "the event")
+        reason = str(payload.get("reason") or "").strip()
+        refund_note = str(payload.get("refund_note") or "").strip()
+        cancelled = self.db.registrations.find_one_and_update(
+            {**self._active_registration_query(), "user_id": int(registration_user_id), "event_id": event_id},
+            {
+                "$set": {
+                    "status": "cancelled",
+                    "cancelled_at": utc_now(),
+                    "cancelled_by": "admin",
+                    "cancelled_by_admin_id": int(admin_id),
+                    "cancellation_reason": reason,
+                    "refund_note": refund_note,
+                }
+            },
+            return_document=ReturnDocument.BEFORE,
+        )
+        if not cancelled:
+            raise ServiceError(404, "REGISTRATION_NOT_FOUND", "Registration not found.")
+
+        quantity = self._registration_quantity(cancelled)
+        self.db.events.update_one(
+            {"id": event_id, "registered_count": {"$gte": quantity}},
+            {"$inc": {"registered_count": -quantity}},
+        )
+        refund_allowed = self._registration_refund_is_allowed(int(registration_user_id), cancelled, event_document)
+        self._debit_event_escrow(event_id, self._registration_total_price(cancelled))
+        refund_transaction = (
+            self._refund_registration_charge(int(registration_user_id), cancelled, event_title)
+            if refund_allowed
+            else None
+        )
+        self.db.registrations.update_one(
+            {"_id": cancelled["_id"]},
+            {
+                "$set": {
+                    "refund_amount": float(refund_transaction["amount"]) if refund_transaction else 0.0,
+                    "refund_transaction_at": refund_transaction.get("created_at") if refund_transaction else None,
+                }
+            },
+        )
+
+        refund_amount = float(refund_transaction["amount"]) if refund_transaction else 0.0
+        refund_summary = f" Refund: {refund_amount:.2f}."
+        if refund_note:
+            refund_summary += f" {refund_note}"
+        self._create_notification(
+            int(registration_user_id),
+            "reservation_removed",
+            "Reservation removed by admin",
+            f'Your reservation for "{event_title}" was removed. Reason: {reason}.{refund_summary}',
+            "/reservations",
+            action_label="View reservations",
+        )
+        return self.list_attendees(event_id)
+
     def approve_event_request(self, event_id: int) -> dict[str, Any]:
         current = self.db.events.find_one({"id": event_id})
         if not current:

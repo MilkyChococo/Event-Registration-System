@@ -70,9 +70,6 @@ const ownerRemoveForm = document.querySelector("#detail-owner-remove-form");
 const ownerRemoveTarget = document.querySelector("#detail-owner-remove-target");
 const ownerRemoveReason = document.querySelector("#detail-owner-remove-reason");
 const ownerRemoveRefund = document.querySelector("#detail-owner-remove-refund");
-const attendeeSection = document.querySelector("[data-testid='detail-attendee-section']");
-const attendeeList = document.querySelector("#detail-attendee-list");
-const loadAttendeesButton = document.querySelector("#detail-load-attendees");
 const detailLayout = document.querySelector(".detail-layout");
 const detailPosterRail = document.querySelector(".detail-poster-rail");
 const detailPoster = document.querySelector(".detail-poster");
@@ -667,18 +664,6 @@ function maybeAutoOpenRegistration() {
   openRegistrationModal();
 }
 
-async function loadAttendees() {
-  const attendees = await api(`/api/events/${state.eventId}/registrations`);
-  attendeeList.innerHTML = attendees.length
-    ? `<ul>${attendees
-        .map(
-          (attendee) =>
-            `<li>${escapeHtml(attendee.name)} - ${escapeHtml(attendee.email)} - ${escapeHtml(String(attendee.quantity || 1))} ticket(s) - ${escapeHtml(attendee.status)} - ${escapeHtml(attendee.registered_at)}</li>`
-        )
-        .join("")}</ul>`
-    : "<p>No attendees registered yet.</p>";
-}
-
 function handleRegister() {
   clearNotice(messageBox);
   openRegistrationModal();
@@ -760,7 +745,6 @@ async function boot() {
   setupAccountMenu(state.user);
   setupGlobalFooter(state.user);
   setupBackLink();
-  attendeeSection.classList.toggle("hidden", state.user.role !== "admin");
   registerButton.addEventListener("click", handleRegister);
   cancelButton.addEventListener("click", handleCancel);
   detailRegistrationClose?.addEventListener("click", closeRegistrationModal);
@@ -832,14 +816,6 @@ async function boot() {
       closeOwnerRemovalModal();
     }
   });
-  loadAttendeesButton.addEventListener("click", async () => {
-    try {
-      await loadAttendees();
-    } catch (error) {
-      showNotice(messageBox, error.message, "error");
-    }
-  });
-
   syncDetailPosterRail();
 
   await loadEvent();

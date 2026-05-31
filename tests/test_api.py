@@ -365,6 +365,16 @@ class ApiTests(unittest.TestCase):
         self.assertGreaterEqual(len(attendees_response.json()), 1)
         self.assertEqual(attendees_response.json()[0]["email"], "student@example.com")
 
+        remove_response = self.client.post(
+            f"/api/admin/events/{event_id}/registrations/{attendees_response.json()[0]['id']}/remove",
+            json={
+                "reason": "Manual attendee rollback",
+                "refund_note": "Full refund returned to attendee wallet.",
+            },
+        )
+        self.assertEqual(remove_response.status_code, 200)
+        self.assertFalse(any(item["email"] == "student@example.com" for item in remove_response.json()))
+
     def test_user_can_register_then_cancel(self) -> None:
         self.login("student@example.com", "Student123!")
         events_response = self.client.get("/api/events")

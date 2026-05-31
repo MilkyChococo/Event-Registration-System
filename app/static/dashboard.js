@@ -74,6 +74,13 @@ const dashboardRegistrationPhone = document.querySelector("#dashboard-registrati
 const dashboardRegistrationSummary = document.querySelector("#dashboard-registration-summary");
 const dashboardRegistrationQuantityFocus = document.querySelector("#dashboard-registration-quantity-focus");
 const dashboardRegistrationPriceFocus = document.querySelector("#dashboard-registration-price-focus");
+const adminAttendeeRemoveModal = document.querySelector("#admin-attendee-remove-modal");
+const adminAttendeeRemoveForm = document.querySelector("#admin-attendee-remove-form");
+const adminAttendeeRemoveClose = document.querySelector("#admin-attendee-remove-close");
+const adminAttendeeRemoveCancel = document.querySelector("#admin-attendee-remove-cancel");
+const adminAttendeeRemoveTarget = document.querySelector("#admin-attendee-remove-target");
+const adminAttendeeRemoveReason = document.querySelector("#admin-attendee-remove-reason");
+const adminAttendeeRemoveRefund = document.querySelector("#admin-attendee-remove-refund");
 
 const DEFAULT_EVENT_IMAGE = "/static/images/default-event.svg";
 const currentPath = window.location.pathname;
@@ -104,6 +111,8 @@ const state = {
   },
   hasSubmittedSearch: false,
   dashboardRegistrationEventId: null,
+  attendeeEventId: null,
+  attendeeRemovalUserId: null,
 };
 
 function toTitleCase(value) {
@@ -1153,12 +1162,76 @@ function renderAttendees(emptyMessage = "No attendees available for the selected
     return;
   }
 
-  attendeeList.innerHTML = `<ul>${state.attendees
+  attendeeList.innerHTML = `<div class="admin-attendee-list">${state.attendees
     .map(
-      (attendee) =>
-        `<li>${escapeHtml(attendee.name)} - ${escapeHtml(attendee.email)} - ${escapeHtml(attendee.registered_at)}</li>`
+      (attendee) => `
+        <article class="admin-attendee-item">
+          <div>
+            <strong>${escapeHtml(attendee.name)}</strong>
+            <p class="subtle">${escapeHtml(attendee.email)} - ${escapeHtml(attendee.ticket_label || "General Admission")} - ${escapeHtml(String(attendee.quantity || 1))} ticket(s)</p>
+            <p class="subtle">${escapeHtml(attendee.registered_at)}</p>
+          </div>
+          <button class="secondary-button danger-button" data-action="remove-attendee" data-user-id="${escapeHtml(String(attendee.id))}" type="button">Remove</button>
+        </article>
+      `
     )
-    .join("")}</ul>`;
+    .join("")}</div>`;
+}
+
+function openAttendeeRemovalModal(userId) {
+  if (!adminAttendeeRemoveModal || !state.attendeeEventId) {
+    return;
+  }
+  const attendee = state.attendees.find((item) => Number(item.id) === Number(userId));
+  if (!attendee) {
+    showToast("Attendee not found.", "error");
+    return;
+  }
+  state.attendeeRemovalUserId = Number(userId);
+  if (adminAttendeeRemoveTarget) {
+    adminAttendeeRemoveTarget.innerHTML = `
+      <strong>${escapeHtml(attendee.name)}</strong>
+      <p class="subtle">${escapeHtml(attendee.email)} - ${escapeHtml(attendee.ticket_label || "General Admission")} - ${escapeHtml(String(attendee.quantity || 1))} ticket(s)</p>
+    `;
+  }
+  if (adminAttendeeRemoveReason) {
+    adminAttendeeRemoveReason.value = "";
+  }
+  if (adminAttendeeRemoveRefund) {
+    adminAttendeeRemoveRefund.value = "Full refund returned to attendee wallet.";
+  }
+  adminAttendeeRemoveModal.classList.remove("hidden");
+  adminAttendeeRemoveModal.setAttribute("aria-hidden", "false");
+  document.body.classList.add("modal-open");
+  adminAttendeeRemoveReason?.focus();
+}
+
+function closeAttendeeRemovalModal() {
+  adminAttendeeRemoveModal?.classList.add("hidden");
+  adminAttendeeRemoveModal?.setAttribute("aria-hidden", "true");
+  document.body.classList.remove("modal-open");
+  state.attendeeRemovalUserId = null;
+  if (adminAttendeeRemoveTarget) {
+    adminAttendeeRemoveTarget.innerHTML = "";
+  }
+}
+
+async function handleAttendeeRemovalSubmit(event) {
+  event.preventDefault();
+  if (!state.attendeeEventId || !state.attendeeRemovalUserId) {
+    return;
+  }
+  state.attendees = await api(`/api/admin/events/${state.attendeeEventId}/registrations/${state.attendeeRemovalUserId}/remove`, {
+    method: "POST",
+    body: JSON.stringify({
+      reason: adminAttendeeRemoveReason?.value.trim() || "",
+      refund_note: adminAttendeeRemoveRefund?.value.trim() || "",
+    }),
+  });
+  renderAttendees();
+  closeAttendeeRemovalModal();
+  await refreshDashboardData();
+  showToast("Attendee removed and refund processed.");
 }
 
 function renderAdminManagerList() {
@@ -1353,6 +1426,7 @@ async function handleGridAction(target) {
   if (target.dataset.action === "reject-request") {
     await api(`/api/admin/events/${eventId}/reject`, { method: "POST" });
     state.attendees = [];
+    state.attendeeEventId = null;
     renderAttendees('Select an event and click "Attendees".');
     showToast("Event request sent back for revision.");
     await refreshDashboardData();
@@ -1367,6 +1441,7 @@ async function handleGridAction(target) {
   if (target.dataset.action === "delete") {
     await api(`/api/admin/events/${eventId}`, { method: "DELETE" });
     state.attendees = [];
+    state.attendeeEventId = null;
     renderAttendees('Select an event and click "Attendees".');
     showToast("Event deleted.");
     await refreshDashboardData();
@@ -1374,6 +1449,7 @@ async function handleGridAction(target) {
   }
 
   if (target.dataset.action === "attendees") {
+    state.attendeeEventId = eventId;
     state.attendees = await api(`/api/events/${eventId}/registrations`);
     renderAttendees();
   }
@@ -1507,6 +1583,35 @@ async function boot() {
     if (target.closest('[data-action="close-dashboard-registration"]')) {
       closeDashboardRegistrationModal();
     }
+  });
+  adminAttendeeRemoveClose?.addEventListener("click", closeAttendeeRemovalModal);
+  adminAttendeeRemoveCancel?.addEventListener("click", closeAttendeeRemovalModal);
+  adminAttendeeRemoveForm?.addEventListener("submit", async (event) => {
+    try {
+      await handleAttendeeRemovalSubmit(event);
+    } catch (error) {
+      showToast(error.message, "error");
+    }
+  });
+  adminAttendeeRemoveModal?.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) {
+      return;
+    }
+    if (target.closest('[data-action="close-attendee-remove"]')) {
+      closeAttendeeRemovalModal();
+    }
+  });
+  attendeeList?.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) {
+      return;
+    }
+    const actionButton = target.closest('[data-action="remove-attendee"]');
+    if (!(actionButton instanceof HTMLElement)) {
+      return;
+    }
+    openAttendeeRemovalModal(actionButton.dataset.userId);
   });
   [dashboardRegistrationQuantity, dashboardRegistrationName, dashboardRegistrationEmail, dashboardRegistrationPhone].forEach((element) => {
     element?.addEventListener("input", renderDashboardRegistrationSummary);

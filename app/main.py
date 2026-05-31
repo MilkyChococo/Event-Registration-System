@@ -402,6 +402,16 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     ) -> list[dict]:
         return service.list_attendees(event_id)
 
+    @app.post("/api/admin/events/{event_id}/registrations/{registration_user_id}/remove", response_model=list[AttendeeOutput])
+    async def remove_admin_event_registration(
+        event_id: int,
+        registration_user_id: int,
+        payload: OwnedEventRegistrationRemovalInput,
+        service: EventRegistrationService = Depends(get_service),
+        admin: dict = Depends(require_admin),
+    ) -> list[dict]:
+        return service.remove_admin_event_registration(admin["id"], event_id, registration_user_id, payload.model_dump())
+
     @app.get("/api/admin/events", response_model=list[EventOutput])
     async def list_admin_events(
         service: EventRegistrationService = Depends(get_service),

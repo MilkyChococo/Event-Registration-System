@@ -383,7 +383,36 @@
     </div>
   </div>
 </div>
-<script type="module" src="/static/dashboard.js?v=20260531-started-event-guard"></script>
+
+<div id="admin-attendee-remove-modal" class="admin-modal hidden" aria-hidden="true">
+  <div class="admin-modal-backdrop" data-action="close-attendee-remove"></div>
+  <div class="admin-modal-dialog admin-card" role="dialog" aria-modal="true" aria-labelledby="admin-attendee-remove-title">
+    <div class="admin-modal-header">
+      <div>
+        <p class="eyebrow">Attendee control</p>
+        <h3 id="admin-attendee-remove-title">Remove attendee</h3>
+        <p class="subtle">Record the reason and refund note before removing this reservation.</p>
+      </div>
+      <button class="secondary-button" id="admin-attendee-remove-close" type="button">Close</button>
+    </div>
+    <form id="admin-attendee-remove-form" class="form-grid admin-modal-form">
+      <div id="admin-attendee-remove-target" class="admin-card activity-empty-card"></div>
+      <label>
+        Reason
+        <textarea id="admin-attendee-remove-reason" rows="3" required minlength="4" placeholder="Example: Duplicate reservation or invalid attendee details"></textarea>
+      </label>
+      <label>
+        Refund note
+        <textarea id="admin-attendee-remove-refund" rows="3" placeholder="Example: Full refund returned to attendee wallet."></textarea>
+      </label>
+      <div class="modal-actions">
+        <button class="secondary-button" id="admin-attendee-remove-cancel" type="button">Cancel</button>
+        <button class="primary-button danger-button" type="submit">Remove attendee</button>
+      </div>
+    </form>
+  </div>
+</div>
+<script type="module" src="/static/dashboard.js?v=20260531-manager-attendee-remove"></script>
   </body>
 </html>
 

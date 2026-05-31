@@ -2439,6 +2439,16 @@ class EventRegistrationService:
             raise ServiceError(409, "ALREADY_REGISTERED", "User already registered for this event.") from exc
 
         self._credit_event_escrow(event_id, total_charge)
+        quantity_note = f" x{requested_quantity}" if requested_quantity > 1 else ""
+        self._create_notification(
+            user_id,
+            "reservation_confirmed",
+            "Reservation confirmed",
+            f'You reserved "{event["title"]}"{quantity_note}. View your ticket in reservations.',
+            "/reservations",
+            action_label="View reservations",
+            dedupe_key=f"reservation-confirmed:{event_id}:{user_id}",
+        )
         return self.get_event(event_id, user_id=user_id)
 
 

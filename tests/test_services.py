@@ -37,6 +37,22 @@ class EventRegistrationServiceTests(unittest.TestCase):
 
         self.assertEqual(context.exception.code, "ALREADY_REGISTERED")
 
+    def test_registration_creates_reservation_notification(self) -> None:
+        event_id = self.service.list_events()[0]["id"]
+        self.service.register_for_event(self.student["id"], event_id)
+
+        notifications = self.service.list_notifications(self.student["id"])
+        reservation_notifications = [
+            item
+            for item in notifications["items"]
+            if item["kind"] == "reservation_confirmed"
+        ]
+
+        self.assertEqual(len(reservation_notifications), 1)
+        self.assertEqual(reservation_notifications[0]["title"], "Reservation confirmed")
+        self.assertEqual(reservation_notifications[0]["link"], "/reservations")
+        self.assertEqual(reservation_notifications[0]["action_label"], "View reservations")
+
     def test_capacity_limit_is_enforced(self) -> None:
         second_user = self.service.register_user(
             "Second User",

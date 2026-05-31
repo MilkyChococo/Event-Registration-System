@@ -1742,6 +1742,7 @@ class EventRegistrationService:
         if not user_document:
             raise ServiceError(404, "ACCOUNT_NOT_FOUND", "Account does not exist.")
 
+        is_admin_owner = str(user_document.get("role") or "") == "admin"
         event_id = self.db.next_sequence("events")
         now = utc_now()
         owned_images = normalize_event_images(payload.get("image_urls", []), payload.get("image_url"))
@@ -1775,14 +1776,18 @@ class EventRegistrationService:
                 "mid_event_highlights": "The main agenda is announced inside the event description.",
                 "closing_highlights": "Closing follows the organizer's final instructions.",
                 "created_by": user_id,
-                "approval_status": APPROVAL_PENDING,
-                "review_note": "Awaiting admin review.",
+                "approval_status": APPROVAL_APPROVED if is_admin_owner else APPROVAL_PENDING,
+                "review_note": "" if is_admin_owner else "Awaiting admin review.",
                 "created_at": now,
                 "updated_at": now,
                 "registered_count": 0,
             }
         )
         self.db.events.insert_one(document)
+        if is_admin_owner:
+            self._notify_event_published(document)
+            return self.get_event(event_id, user_id=user_id)
+
         self._create_notification(
             user_id,
             "request_sent",
@@ -1805,6 +1810,7 @@ class EventRegistrationService:
         if not user_document:
             raise ServiceError(404, "ACCOUNT_NOT_FOUND", "Account does not exist.")
 
+        is_admin_owner = str(user_document.get("role") or "") == "admin"
         current = self.db.events.find_one({"id": event_id, "created_by": user_id})
         if not current:
             raise ServiceError(404, "EVENT_NOT_FOUND", "Owned event not found.")
@@ -1863,8 +1869,8 @@ class EventRegistrationService:
                     "contact_email": normalized["contact_email"],
                     "contact_phone": normalized["contact_phone"],
                     "ticket_types": normalized["ticket_types"],
-                    "approval_status": APPROVAL_PENDING,
-                    "review_note": "Awaiting admin review.",
+                    "approval_status": APPROVAL_APPROVED if is_admin_owner else APPROVAL_PENDING,
+                    "review_note": "" if is_admin_owner else "Awaiting admin review.",
                     "updated_at": normalized["updated_at"],
                 }
             },
@@ -1872,6 +1878,9 @@ class EventRegistrationService:
         )
         if not updated:
             raise ServiceError(404, "EVENT_NOT_FOUND", "Owned event not found.")
+
+        if is_admin_owner:
+            return self.get_event(event_id, user_id=user_id)
 
         self._create_notification(
             user_id,

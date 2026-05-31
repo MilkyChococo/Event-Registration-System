@@ -116,9 +116,42 @@ class EventRegistrationServiceTests(unittest.TestCase):
         self.assertEqual(quantity_ticket["quantity"], 5)
         self.assertEqual(quantity_ticket["total_price"], 75)
 
+        second_user = self.service.register_user(
+            "Quantity Limit User",
+            "quantity.limit@example.com",
+            "Password123!",
+            "2004-09-01",
+            "Vietnam",
+            "Ho Chi Minh City",
+            "District 1",
+            "Ben Nghe Ward",
+            "99 Example Street",
+            "+84",
+            "Vietnam",
+            "vn",
+            "934567891",
+        )
         with self.assertRaises(ServiceError) as context:
-            self.service.register_for_event(self.admin["id"], event["id"], {"quantity": 6})
+            self.service.register_for_event(second_user["id"], event["id"], {"quantity": 6})
         self.assertEqual(context.exception.code, "TICKET_LIMIT_EXCEEDED")
+
+    def test_owner_cannot_register_for_own_event(self) -> None:
+        event = self.service.create_event(
+            self.admin["id"],
+            {
+                "title": "Owner Blocked Event",
+                "description": "Used to prevent owner self-reservation wallet loops.",
+                "location": "Studio O",
+                "start_at": "2026-05-08T18:00:00",
+                "capacity": 12,
+                "price": 15,
+            },
+        )
+
+        with self.assertRaises(ServiceError) as context:
+            self.service.register_for_event(self.admin["id"], event["id"], {"quantity": 1})
+
+        self.assertEqual(context.exception.code, "OWNER_CANNOT_REGISTER")
 
     def test_cancelled_registration_is_removed_after_one_day(self) -> None:
         event_id = self.service.list_events()[0]["id"]
@@ -341,6 +374,57 @@ class EventRegistrationServiceTests(unittest.TestCase):
         self.assertAlmostEqual(float(event_after_payout.get("escrow_balance", 0) or 0), 0.0)
         self.assertAlmostEqual(float(event_after_payout.get("owner_payout_total", 0) or 0), 12.0)
         self.assertEqual(str(event_after_payout.get("payout_status") or ""), "paid")
+
+    def test_legacy_owner_self_registration_does_not_refund_after_payout(self) -> None:
+        event = self.service.create_event(
+            self.admin["id"],
+            {
+                "title": "Legacy Owner Self Reservation",
+                "description": "Regression guard for owner self-reservation payout loops.",
+                "location": "Legacy Hall",
+                "start_at": "2026-04-01T18:00:00",
+                "capacity": 10,
+                "price": 25,
+            },
+        )
+        self.db.events.update_one(
+            {"id": event["id"]},
+            {
+                "$set": {
+                    "registered_count": 1,
+                    "escrow_balance": 0.0,
+                    "owner_payout_total": 25.0,
+                    "payout_status": "paid",
+                }
+            },
+        )
+        self.db.registrations.insert_one(
+            {
+                "user_id": self.admin["id"],
+                "event_id": event["id"],
+                "created_at": "2026-04-01T12:00:00+00:00",
+                "registered_at": "2026-04-01T12:00:00+00:00",
+                "status": "confirmed",
+                "ticket_label": "General Admission",
+                "ticket_price": 25.0,
+                "quantity": 1,
+                "total_price": 25.0,
+                "ticket_code": "EVH-LEGACY-OWNER",
+                "qr_payload": "EVH-LEGACY-OWNER|Legacy Owner Self Reservation|2026-04-01T18:00:00",
+                "attendee_name": self.admin["name"],
+                "attendee_email": self.admin["email"],
+                "attendee_phone": self.admin["phone_number"],
+                "balance_spent": 25.0,
+            }
+        )
+
+        before = self.service.authenticate("admin@example.com", "Admin123!")
+        self.service.cancel_registration(self.admin["id"], event["id"])
+        after = self.service.authenticate("admin@example.com", "Admin123!")
+        transactions = self.service.list_wallet_transactions(self.admin["id"])
+
+        self.assertAlmostEqual(after["balance"], before["balance"])
+        self.assertFalse(any(transaction["kind"] == "reservation_refund" for transaction in transactions))
 
     def test_change_password_rejects_same_as_current_password(self) -> None:
         with self.assertRaises(ServiceError) as context:

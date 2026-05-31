@@ -669,6 +669,18 @@ class EventRegistrationService:
             ticket_label=str(registration.get("ticket_label") or ""),
         )
 
+    def _registration_refund_is_allowed(
+        self,
+        user_id: int,
+        registration: dict[str, Any],
+        event_document: dict[str, Any] | None,
+    ) -> bool:
+        if not event_document:
+            return True
+        if int(event_document.get("created_by") or 0) != int(user_id):
+            return True
+        return self._event_escrow_balance(event_document) >= self._registration_total_price(registration)
+
     def _event_escrow_balance(self, event_document: dict[str, Any] | None) -> float:
         if not event_document:
             return 0.0
@@ -1950,8 +1962,13 @@ class EventRegistrationService:
             {"id": event_id, "registered_count": {"$gte": quantity}},
             {"$inc": {"registered_count": -quantity}},
         )
+        refund_allowed = self._registration_refund_is_allowed(int(registration_user_id), cancelled, event_document)
         self._debit_event_escrow(event_id, self._registration_total_price(cancelled))
-        refund_transaction = self._refund_registration_charge(int(registration_user_id), cancelled, event_title)
+        refund_transaction = (
+            self._refund_registration_charge(int(registration_user_id), cancelled, event_title)
+            if refund_allowed
+            else None
+        )
         self.db.registrations.update_one(
             {"_id": cancelled["_id"]},
             {
@@ -2333,6 +2350,8 @@ class EventRegistrationService:
         event = self._normalize_event_document(event_document)
         if event["approval_status"] != APPROVAL_APPROVED:
             raise ServiceError(404, "EVENT_NOT_FOUND", "Event not found.")
+        if int(event_document.get("created_by") or 0) == int(user_id):
+            raise ServiceError(409, "OWNER_CANNOT_REGISTER", "Event owners cannot reserve tickets for their own event.")
 
         existing_registration = self.db.registrations.find_one({"user_id": user_id, "event_id": event_id})
         if self._is_active_registration(existing_registration):
@@ -2439,8 +2458,10 @@ class EventRegistrationService:
         )
         event_document = self.db.events.find_one({"id": event_id})
         event_title = str(event_document.get("title") or "") if event_document else ""
+        refund_allowed = self._registration_refund_is_allowed(user_id, cancelled, event_document)
         self._debit_event_escrow(event_id, self._registration_total_price(cancelled))
-        self._refund_registration_charge(user_id, cancelled, event_title)
+        if refund_allowed:
+            self._refund_registration_charge(user_id, cancelled, event_title)
         return self.get_event(event_id, user_id=user_id)
 
 

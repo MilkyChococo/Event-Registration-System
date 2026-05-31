@@ -826,9 +826,9 @@ class EventRegistrationService:
         defaults = {
             "category": "Special Event",
             "event_format": "Offline",
-            "organizer_name": "EventHub Verify Studio",
-            "organizer_details": "Managed through the EventHub Verify admin workspace.",
-            "speaker_lineup": ["EventHub Verify Team - Host and onsite coordination"],
+            "organizer_name": "Menu Studio",
+            "organizer_details": "Managed through the Menu admin workspace.",
+            "speaker_lineup": ["Menu Team - Host and onsite coordination"],
             "registration_deadline": start_at,
             "map_url": build_location_map_url(location, document.get("latitude"), document.get("longitude")) if location or document.get("latitude") is not None else "",
             "refund_policy": "Full refund up to 48 hours before the event. No refund after the check-in window opens.",
@@ -846,12 +846,12 @@ class EventRegistrationService:
             defaults.update(
                 {
                     "category": "Career Networking",
-                    "organizer_name": "EventHub Verify x AI Club",
+                    "organizer_name": "Menu x AI Club",
                     "organizer_details": "A curated evening for AI students, lab mentors, and startup recruiters who prefer long-form conversations over quick booth pitches.",
                     "speaker_lineup": [
                         "Lan Nguyen - Talent Partner, Aster Labs",
                         "Minh Tran - Founder, ProtoVision AI",
-                        "Gia Bao - Career Coach, EventHub Verify",
+                        "Gia Bao - Career Coach, Menu",
                     ],
                     "registration_deadline": "2026-04-10T12:00:00",
                     "ticket_types": normalize_ticket_types(
@@ -867,7 +867,7 @@ class EventRegistrationService:
             defaults.update(
                 {
                     "category": "Workshop",
-                    "organizer_name": "EventHub Verify x SE113 Lab",
+                    "organizer_name": "Menu x SE113 Lab",
                     "organizer_details": "A guided studio day for teams who want a stronger release workflow before project defense and internship demos.",
                     "speaker_lineup": [
                         "Trung Kien - QA Lead, Orchid Tech Loft",
@@ -888,7 +888,7 @@ class EventRegistrationService:
             defaults.update(
                 {
                     "category": "Showcase",
-                    "organizer_name": "EventHub Verify x Founder Circle",
+                    "organizer_name": "Menu x Founder Circle",
                     "organizer_details": "An event-night format for student founders, mentors, and guests who want to experience products, not just watch slides.",
                     "speaker_lineup": [
                         "An Khang - Program Host",

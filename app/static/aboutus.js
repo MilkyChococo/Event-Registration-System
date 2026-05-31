@@ -17,7 +17,7 @@ async function boot() {
   const user = await getCurrentUser();
   if (!user) {
     signInLink?.classList.remove("hidden");
-    welcomeText.textContent = "About EventHub Verify";
+    welcomeText.textContent = "About Event Registration System";
     return;
   }
 

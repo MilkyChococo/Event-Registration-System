@@ -911,7 +911,7 @@ function buildEventSlideMarkup(event) {
             </article>
             <article>
               <span>Organizer</span>
-              <strong>${escapeHtml(event.organizer_name || "EventHub Verify Studio")}</strong>
+              <strong>${escapeHtml(event.organizer_name || "Menu Studio")}</strong>
             </article>
           </div>
           <div class="button-row">
@@ -1439,7 +1439,7 @@ async function boot() {
   renderAdminImageEditor();
   renderAttendees("Select an event and click \"Attendees\".");
   const initialAdminView = state.user.role === "admin" && currentPath === "/admin/manager" ? "manager" : "event-board";
-  document.title = initialAdminView === "manager" ? "Admin Manager | EventHub Verify" : "Dashboard | EventHub Verify";
+  document.title = initialAdminView === "manager" ? "Admin Manager | Menu" : "Dashboard | Menu";
   setAdminView(initialAdminView);
 
   refreshButton.addEventListener("click", async () => {

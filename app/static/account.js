@@ -564,9 +564,9 @@ function downloadCalendarInvite(ticket) {
   const content = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//EventHub Verify//Ticket Calendar//EN",
+    "PRODID:-//Menu//Ticket Calendar//EN",
     "BEGIN:VEVENT",
-    `UID:${ticket.ticket_code}@eventhub-verify.local`,
+    `UID:${ticket.ticket_code}@menu.local`,
     `DTSTAMP:${dtStamp}`,
     `DTSTART:${startStamp}`,
     `DTEND:${endStamp}`,

@@ -759,7 +759,7 @@ async function refreshNotificationMenu(shell) {
 }
 
 export function requestNotificationRefresh() {
-  window.dispatchEvent(new CustomEvent("eventhub:notifications-refresh"));
+  window.dispatchEvent(new CustomEvent("Menu:notifications-refresh"));
 }
 
 function setupNotificationMenu() {
@@ -801,7 +801,7 @@ function setupNotificationMenu() {
       }
     });
 
-    window.addEventListener("eventhub:notifications-refresh", () => {
+    window.addEventListener("Menu:notifications-refresh", () => {
       void refreshNotificationMenu(shell).catch(() => {
         updateNotificationBadge(shell.badge, 0);
       });
@@ -1182,7 +1182,7 @@ function buildGlobalFooterMarkup(user) {
     <footer class="dashboard-site-footer">
       <section class="dashboard-site-footer-panel">
         <div class="dashboard-site-footer-top">
-          <a class="dashboard-support-link" href="mailto:thienphu210505@gmail.com?subject=EventHub%20Verify%20Support">
+          <a class="dashboard-support-link" href="mailto:thienphu210505@gmail.com?subject=Menu%20Support">
             <span aria-hidden="true">&#9993;</span>
             Contact site support
             <span aria-hidden="true">&#8599;</span>
@@ -1203,7 +1203,7 @@ function buildGlobalFooterMarkup(user) {
           </section>
 
           <section class="dashboard-site-footer-column">
-            <p class="dashboard-site-footer-label">About EventHub Verify</p>
+            <p class="dashboard-site-footer-label">About Menu</p>
             <a class="dashboard-footer-link" href="/aboutus">SE113.Q21 event board</a>
             <p class="dashboard-site-footer-copy">Reserve seats with clearer venue and timing context.</p>
             <p class="dashboard-site-footer-copy">Updates stay more reliable through MongoDB-backed event data.</p>

@@ -484,8 +484,7 @@ function exportBillingHistory() {
       transaction.created_at,
     ]),
   ];
-  const csv = rows.map((row) => row.map((value) => `"${String(value ?? "").replace(/"/g, '""')}"`).join(",")).join("
-");
+  const csv = rows.map((row) => row.map((value) => `"${String(value ?? "").replace(/"/g, '""')}"`).join(",")).join("\n");
   createDownload("billing-history.csv", csv, "text/csv;charset=utf-8");
   showToast("Billing export downloaded.");
 }
@@ -553,8 +552,7 @@ function downloadTicketPass(ticket) {
     `Start time: ${formatDateTime(ticket.start_at)}`,
     `QR payload: ${ticket.qr_payload}`,
   ];
-  createDownload(`${ticket.ticket_code}.txt`, lines.join("
-"), "text/plain;charset=utf-8");
+  createDownload(`${ticket.ticket_code}.txt`, lines.join("\n"), "text/plain;charset=utf-8");
 }
 
 function downloadCalendarInvite(ticket) {
@@ -577,9 +575,7 @@ function downloadCalendarInvite(ticket) {
     `DESCRIPTION:Ticket ${ticket.ticket_code} for ${ticket.ticket_label}`,
     "END:VEVENT",
     "END:VCALENDAR",
-  ].join("
-
-");
+  ].join("\n\n");
   createDownload(`${ticket.ticket_code}.ics`, content, "text/calendar;charset=utf-8");
 }
 
@@ -729,7 +725,6 @@ async function boot() {
   state.user = user;
   populateProfile(user);
   setupGlobalFooter(user);
-  await Promise.all([loadTickets(), loadOwnedEvents()]);
 
   profileEditTrigger?.addEventListener("click", openProfileModal);
   profileModalClose?.addEventListener("click", closeProfileModal);

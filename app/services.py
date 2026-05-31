@@ -1142,6 +1142,35 @@ class EventRegistrationService:
             }
         )
 
+    def _list_regular_user_ids(self, excluded_user_ids: set[int] | None = None) -> list[int]:
+        excluded = {int(user_id) for user_id in excluded_user_ids or set()}
+        return sorted(
+            {
+                int(document["id"])
+                for document in self.db.users.find({"role": {"$ne": "admin"}}, {"_id": 0, "id": 1})
+                if "id" in document and int(document["id"]) not in excluded
+            }
+        )
+
+    def _notify_event_published(self, event_document: dict[str, Any], excluded_user_ids: set[int] | None = None) -> None:
+        event_id = int(event_document.get("id") or 0)
+        if not event_id:
+            return
+
+        title = str(event_document.get("title") or "A new event")
+        start_at = str(event_document.get("start_at") or "")
+        time_copy = f" Starts {start_at}." if start_at else ""
+        for user_id in self._list_regular_user_ids(excluded_user_ids):
+            self._create_notification(
+                user_id,
+                "event_published",
+                "New event published",
+                f'"{title}" is now available on the event board.{time_copy}',
+                f"/events/{event_id}/view",
+                action_label="View event",
+                dedupe_key=f"event-published:{event_id}",
+            )
+
     def _create_notification(
         self,
         user_id: int,
@@ -1970,6 +1999,7 @@ class EventRegistrationService:
                 f'"{updated.get("title") or "Your event"}" was approved and published on the event board.',
                 f"/events/{event_id}/view",
             )
+        self._notify_event_published(updated, excluded_user_ids={owner_id} if owner_id else None)
         return self.get_event(event_id, user_id=owner_id or None)
 
     def reject_event_request(self, event_id: int) -> dict[str, Any]:
@@ -2162,6 +2192,7 @@ class EventRegistrationService:
             }
         )
         self.db.events.insert_one(document)
+        self._notify_event_published(document)
         return self.get_event(event_id)
 
     def update_event(self, event_id: int, payload: dict[str, Any]) -> dict[str, Any]:

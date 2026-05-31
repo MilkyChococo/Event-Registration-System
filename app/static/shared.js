@@ -1192,11 +1192,13 @@ function buildGlobalFooterMarkup(user) {
         <div class="dashboard-site-footer-grid">
           <section class="dashboard-site-footer-column">
             <p class="dashboard-site-footer-label">Session</p>
-            <p class="dashboard-site-footer-copy">
-              You are signed in as <strong>${escapeHtml(normalizedUser.name)}</strong> (${escapeHtml(roleLabel)})
+            <div class="dashboard-site-footer-copy dashboard-footer-session">
+              <p>You are signed in as <strong>${escapeHtml(normalizedUser.name)}</strong> (${escapeHtml(roleLabel)})</p>
+              <div class="dashboard-footer-session-actions">
               <a class="dashboard-footer-inline-link" href="/account">Account details</a>
               <button class="dashboard-footer-inline-button" data-action="global-footer-logout" type="button">Sign out</button>
-            </p>
+              </div>
+            </div>
             <a class="dashboard-footer-link" href="mailto:${escapeHtml(normalizedUser.email)}">Email: ${escapeHtml(normalizedUser.email)}</a>
           </section>
 

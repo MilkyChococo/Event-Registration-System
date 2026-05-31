@@ -1304,6 +1304,21 @@ select:focus {
   color: #ffffff;
 }
 
+.dashboard-footer-session {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.dashboard-footer-session p {
+  margin: 0;
+}
+
+.dashboard-footer-session-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
 .dashboard-footer-link {
   line-height: 1.6;
 }
@@ -2363,26 +2378,11 @@ select:focus {
 }
 
 .detail-poster::before {
-  content: "";
-  position: absolute;
-  inset: 2.2rem auto auto 2rem;
-  width: 190px;
-  height: 190px;
-  border-radius: 50%;
-  background: rgba(247, 224, 163, 0.82);
-  z-index: 1;
+  content: none;
 }
 
 .detail-poster::after {
-  content: "";
-  position: absolute;
-  inset: auto 2rem 2.2rem auto;
-  width: 78%;
-  height: 34%;
-  border-radius: 2rem;
-  background: rgba(255, 252, 246, 0.14);
-  backdrop-filter: blur(4px);
-  z-index: 1;
+  content: none;
 }
 
 .detail-gallery-shell {

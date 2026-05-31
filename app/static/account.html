@@ -108,77 +108,6 @@
           </div>
         </section>
 
-        <section class="page-section" id="account-owned-events-section">
-          <div class="section-heading">
-            <div>
-              <p class="eyebrow">My events</p>
-              <h2>Create and manage your own events</h2>
-            </div>
-          </div>
-
-          <div class="owned-events-layout">
-            <section class="admin-card owned-event-form-card">
-              <div class="section-heading compact-heading">
-                <div>
-                  <p class="eyebrow">Create</p>
-                  <h3>Add your own event</h3>
-                </div>
-              </div>
-              <form id="owned-event-form" class="form-grid two-columns">
-                <label>
-                  Event title
-                  <input id="owned-event-title" type="text" required />
-                </label>
-                <label>
-                  Category
-                  <input id="owned-event-category" type="text" value="Community" required />
-                </label>
-                <label class="full-width">
-                  Description
-                  <textarea id="owned-event-description" rows="4" required></textarea>
-                </label>
-                <label>
-                  Location
-                  <input id="owned-event-location" type="text" required />
-                </label>
-                <label>
-                  Start time
-                  <input id="owned-event-start-at" type="datetime-local" required />
-                </label>
-                <label>
-                  Capacity
-                  <input id="owned-event-capacity" type="number" min="1" required />
-                </label>
-                <label>
-                  Ticket price (USD)
-                  <input id="owned-event-price" type="number" min="0" step="1" required />
-                </label>
-                <button class="primary-button full-width" id="owned-event-submit" type="submit">Create my event</button>
-              </form>
-            </section>
-
-            <section class="admin-card owned-event-list-card">
-              <div class="section-heading compact-heading">
-                <div>
-                  <p class="eyebrow">Inventory</p>
-                  <h3>Owned event list</h3>
-                </div>
-              </div>
-              <div id="owned-event-list" class="owned-event-list">Loading owned events...</div>
-            </section>
-          </div>
-        </section>
-
-        <section class="page-section">
-          <div class="section-heading">
-            <div>
-              <p class="eyebrow">My tickets</p>
-              <h2>Registrations and ticket access</h2>
-            </div>
-            <a class="secondary-button" href="/account/security">Security &amp; Privacy</a>
-          </div>
-          <div id="account-ticket-list" class="account-ticket-grid" data-testid="account-ticket-list">Loading tickets...</div>
-        </section>
       </main>
       <div class="global-footer-host" data-global-footer-host></div>
     </div>
@@ -271,7 +200,7 @@
       </div>
     </div>
 
-    <script type="module" src="/static/account.js?v=20260406-issue-report-fab"></script>
+    <script type="module" src="/static/account.js?v=20260531-profile-only"></script>
   </body>
 </html>
 

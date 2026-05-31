@@ -1166,12 +1166,12 @@ function renderAttendees(emptyMessage = "No attendees available for the selected
     .map(
       (attendee) => `
         <article class="admin-attendee-item">
-          <button class="secondary-button danger-button" data-action="remove-attendee" data-user-id="${escapeHtml(String(attendee.id))}" type="button">Remove</button>
           <div>
             <strong>${escapeHtml(attendee.name)}</strong>
             <p class="subtle">${escapeHtml(attendee.email)} - ${escapeHtml(attendee.ticket_label || "General Admission")} - ${escapeHtml(String(attendee.quantity || 1))} ticket(s)</p>
             <p class="subtle">${escapeHtml(attendee.registered_at)}</p>
           </div>
+          <button class="secondary-button danger-button" data-action="remove-attendee" data-user-id="${escapeHtml(String(attendee.id))}" type="button">Remove</button>
         </article>
       `
     )

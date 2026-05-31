@@ -7,6 +7,7 @@ import {
   formatDateTime,
   getCurrentUser,
   redirectTo,
+  requestNotificationRefresh,
   setupGlobalFooter,
   setupAccountMenu,
   showNotice,
@@ -687,6 +688,7 @@ async function handleRegistrationSubmit(event) {
     });
     closeRegistrationModal();
     renderEvent();
+    requestNotificationRefresh();
     showToast(quantity > 1 ? `${quantity} seats reserved successfully.` : "Seat reserved successfully.");
   } catch (error) {
     showToast(error.message, "error");

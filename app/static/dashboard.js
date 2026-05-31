@@ -8,6 +8,7 @@ import {
   fromDatetimeLocal,
   getCurrentUser,
   redirectTo,
+  requestNotificationRefresh,
   setupGlobalFooter,
   setupAccountMenu,
   showToast,
@@ -474,6 +475,7 @@ async function handleDashboardRegistrationSubmit(event) {
   renderEventSearchPanel();
   closeDashboardRegistrationModal();
   await syncAdminAnalyticsAfterReservation();
+  requestNotificationRefresh();
   showToast(quantity > 1 ? `${quantity} seats reserved successfully.` : "Seat reserved successfully.");
 }
 function renderEventSearchPanel() {

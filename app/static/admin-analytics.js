@@ -12,6 +12,7 @@ import {
 
 const refreshButton = document.querySelector("#admin-analytics-refresh");
 const welcomeText = document.querySelector("#welcome-text");
+const roleChip = document.querySelector("[data-testid='user-role-chip']");
 const analyticsTotalRegistrations = document.querySelector("#analytics-total-registrations");
 const analyticsTotalRevenue = document.querySelector("#analytics-total-revenue");
 const analyticsOccupancyRate = document.querySelector("#analytics-occupancy-rate");
@@ -32,6 +33,13 @@ function formatPercent(value) {
   const numeric = Number(value || 0);
   const digits = Number.isInteger(numeric) ? 0 : 1;
   return `${numeric.toFixed(digits)}%`;
+}
+
+function toTitleCase(value) {
+  if (!value) {
+    return "";
+  }
+  return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
 function getAnalyticsEventId(event) {
@@ -226,6 +234,9 @@ async function boot() {
   setupAccountMenu(state.user);
   setupGlobalFooter(state.user);
   welcomeText.textContent = `Welcome, ${state.user.name}`;
+  if (roleChip) {
+    roleChip.textContent = toTitleCase(state.user.role);
+  }
 
   refreshButton?.addEventListener("click", async () => {
     try {

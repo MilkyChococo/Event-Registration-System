@@ -124,10 +124,25 @@ Tests use `mongomock`, so they do not require a live MongoDB server.
 
 ### Playwright
 
+Playwright uses `http://127.0.0.1:10104` from `playwright.config.js`, so keep the FastAPI app running in one terminal:
+
+```bash
+python -m uvicorn app.main:app --reload --port 10104
+```
+
+Then run the smoke suite from a second terminal:
+
 ```bash
 cmd /c npm install
 cmd /c npx playwright install chromium
 cmd /c npm run test:e2e:smoke
+```
+
+Useful variants:
+
+```bash
+cmd /c npm run test:e2e
+cmd /c npm run test:e2e:critical
 ```
 
 ## Demo accounts

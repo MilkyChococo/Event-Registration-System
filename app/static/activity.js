@@ -46,6 +46,8 @@ const formTitle = document.querySelector("#activity-form-title");
 const activityRequestModal = document.querySelector("#activity-request-modal");
 const activityRequestModalOpen = document.querySelector("#activity-open-request-modal");
 const activityRequestModalClose = document.querySelector("#activity-request-modal-close");
+const activityStudioTitle = document.querySelector("#activity-studio-title");
+const activityInventoryTitle = document.querySelector("#activity-inventory-title");
 const activityDeleteModal = document.querySelector("#activity-delete-modal");
 const activityDeleteClose = document.querySelector("#activity-delete-close");
 const activityDeleteCancel = document.querySelector("#activity-delete-cancel");
@@ -86,6 +88,23 @@ function formatApprovalStatus(status) {
     return "Needs revision";
   }
   return "Approved";
+}
+
+function isAdmin() {
+  return String(state.user?.role || "").trim().toLowerCase() === "admin";
+}
+
+function applyActivityRoleCopy() {
+  const adminMode = isAdmin();
+  if (activityStudioTitle) {
+    activityStudioTitle.textContent = adminMode ? "Event studio" : "Event request studio";
+  }
+  if (activityRequestModalOpen) {
+    activityRequestModalOpen.textContent = adminMode ? "Add new event" : "Send new request";
+  }
+  if (activityInventoryTitle) {
+    activityInventoryTitle.textContent = adminMode ? "Upcoming events" : "Your requests";
+  }
 }
 
 function normalizeImageList(values) {
@@ -163,7 +182,9 @@ function openDeleteConfirmModal(eventId) {
   }
   state.pendingDeleteEventId = Number(eventId);
   if (activityDeleteCopy) {
-    activityDeleteCopy.textContent = `Delete "${event.title}" from your event queue? This cannot be undone.`;
+    activityDeleteCopy.textContent = isAdmin()
+      ? `Delete "${event.title}" from your upcoming events? This cannot be undone.`
+      : `Delete "${event.title}" from your event queue? This cannot be undone.`;
   }
   activityDeleteModal.classList.remove("hidden");
   activityDeleteModal.setAttribute("aria-hidden", "false");
@@ -395,6 +416,7 @@ function setCoverImage(index) {
 }
 
 function resetOwnedEventForm() {
+  const adminMode = isAdmin();
   state.editingEventId = null;
   if (ownedEventForm instanceof HTMLFormElement) {
     ownedEventForm.reset();
@@ -404,16 +426,17 @@ function resetOwnedEventForm() {
   if (ownedEventLocation) ownedEventLocation.dataset.locationValidated = "false";
   if (ownedEventLatitude) ownedEventLatitude.value = "";
   if (ownedEventLongitude) ownedEventLongitude.value = "";
-  if (ownedEventSubmit) ownedEventSubmit.textContent = "Send request";
+  if (ownedEventSubmit) ownedEventSubmit.textContent = adminMode ? "Add event" : "Send request";
   if (ownedEventCancel) ownedEventCancel.classList.add("hidden");
-  if (formKicker) formKicker.textContent = "Request";
-  if (formTitle) formTitle.textContent = "Send a new event request";
+  if (formKicker) formKicker.textContent = adminMode ? "Event" : "Request";
+  if (formTitle) formTitle.textContent = adminMode ? "Add a new event" : "Send a new event request";
   setDraftImages([]);
   clearImagePicker();
   renderImageEditor();
 }
 
 function fillOwnedEventForm(event) {
+  const adminMode = isAdmin();
   state.editingEventId = Number(event.id);
   if (ownedEventId) ownedEventId.value = String(event.id);
   if (ownedEventTitle) ownedEventTitle.value = event.title || "";
@@ -429,10 +452,10 @@ function fillOwnedEventForm(event) {
   if (ownedEventStartAt) ownedEventStartAt.value = toDatetimeLocal(event.start_at || "");
   if (ownedEventCapacity) ownedEventCapacity.value = String(event.capacity || 1);
   if (ownedEventPrice) ownedEventPrice.value = String(event.price || 0);
-  if (ownedEventSubmit) ownedEventSubmit.textContent = "Resubmit request";
+  if (ownedEventSubmit) ownedEventSubmit.textContent = adminMode ? "Update event" : "Resubmit request";
   if (ownedEventCancel) ownedEventCancel.classList.remove("hidden");
-  if (formKicker) formKicker.textContent = "Update request";
-  if (formTitle) formTitle.textContent = `Update request: ${event.title}`;
+  if (formKicker) formKicker.textContent = adminMode ? "Update event" : "Update request";
+  if (formTitle) formTitle.textContent = `${adminMode ? "Update event" : "Update request"}: ${event.title}`;
   setDraftImages((Array.isArray(event.image_urls) ? event.image_urls : []).filter((image) => image !== DEFAULT_EVENT_IMAGE));
   renderImageEditor(
     state.draftImages.length
@@ -467,8 +490,11 @@ function renderOwnedEvents() {
     return;
   }
 
+  const adminMode = isAdmin();
   if (!state.ownedEvents.length) {
-    ownedEventList.innerHTML = '<p class="subtle">You have not sent any event request yet.</p>';
+    ownedEventList.innerHTML = adminMode
+      ? '<p class="subtle">No upcoming events in your studio yet.</p>'
+      : '<p class="subtle">You have not sent any event request yet.</p>';
     return;
   }
 
@@ -489,8 +515,8 @@ function renderOwnedEvents() {
           </div>
           <div class="owned-event-actions">
             <a class="secondary-button" href="/events/${event.id}/view">View detail</a>
-            <button class="secondary-button" data-action="edit-owned-event" data-id="${event.id}" type="button">Edit request</button>
-            <button class="secondary-button danger-button" data-action="delete-owned-event" data-id="${event.id}" type="button">Delete request</button>
+            <button class="secondary-button" data-action="edit-owned-event" data-id="${event.id}" type="button">${adminMode ? "Edit event" : "Edit request"}</button>
+            <button class="secondary-button danger-button" data-action="delete-owned-event" data-id="${event.id}" type="button">${adminMode ? "Delete event" : "Delete request"}</button>
           </div>
         </article>
       `;
@@ -499,6 +525,7 @@ function renderOwnedEvents() {
 }
 
 function populateHeader(user) {
+  state.user = user;
   renderUserAvatar(activityAvatar, user, "profile-avatar-image");
   if (activityTitle) {
     activityTitle.textContent = `${user.name}'s events`;
@@ -513,6 +540,7 @@ function populateHeader(user) {
     activityRoleChip.textContent = toTitleCase(user.role);
   }
   activityAdminTopbarNav?.classList.toggle("hidden", user.role !== "admin");
+  applyActivityRoleCopy();
   setupAccountMenu(user);
   setupGlobalFooter(user);
 }
@@ -545,8 +573,9 @@ function buildOwnedEventPayload() {
 
 async function handleOwnedEventSubmit(event) {
   event.preventDefault();
+  const adminMode = isAdmin();
   if (!hasValidatedMapLocation(ownedEventLocation, ownedEventLatitude, ownedEventLongitude)) {
-    showToast("Choose a valid signature location from the map before sending this request.", "error");
+    showToast(`Choose a valid signature location from the map before ${adminMode ? "saving this event" : "sending this request"}.`, "error");
     ownedEventLocation?.focus();
     return;
   }
@@ -556,13 +585,13 @@ async function handleOwnedEventSubmit(event) {
       method: "PUT",
       body: JSON.stringify(payload),
     });
-    showToast("Request updated and sent for review.");
+    showToast(adminMode ? "Event updated." : "Request updated and sent for review.");
   } else {
     await api("/api/me/owned-events", {
       method: "POST",
       body: JSON.stringify(payload),
     });
-    showToast("Request sent for admin review.");
+    showToast(adminMode ? "Event added to your upcoming events." : "Request sent for admin review.");
   }
   requestNotificationRefresh();
   closeOwnedEventModal();

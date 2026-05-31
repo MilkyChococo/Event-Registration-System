@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap");
+
 :root {
   --sand: #f7f2e8;
   --paper: rgba(255, 252, 246, 0.92);
@@ -24,7 +26,7 @@ body {
   margin: 0;
   min-height: 100vh;
   color: var(--ink);
-  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+  font-family: "Inter", "Segoe UI", sans-serif;
   background:
     radial-gradient(circle at top left, rgba(14, 109, 104, 0.16), transparent 28%),
     radial-gradient(circle at bottom right, rgba(193, 141, 47, 0.18), transparent 22%),
@@ -39,7 +41,7 @@ h1,
 h2,
 h3,
 strong {
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: "Plus Jakarta Sans", "Inter", sans-serif;
 }
 
 img {
@@ -1775,6 +1777,10 @@ select:focus {
 .admin-manager-list {
   display: grid;
   gap: 0.85rem;
+  max-height: 30rem;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+  align-content: start;
 }
 
 .admin-manager-empty,
@@ -4178,6 +4184,8 @@ select:focus {
 
 .event-match-list,
 .billing-transaction-list,
+.owned-event-list-card .owned-event-list,
+.admin-manager-list,
 .admin-modal-dialog {
   scrollbar-gutter: stable;
   scrollbar-width: thin;
@@ -4186,6 +4194,8 @@ select:focus {
 
 .event-match-list::-webkit-scrollbar,
 .billing-transaction-list::-webkit-scrollbar,
+.owned-event-list-card .owned-event-list::-webkit-scrollbar,
+.admin-manager-list::-webkit-scrollbar,
 .admin-modal-dialog::-webkit-scrollbar {
   width: 0.9rem;
   height: 0.9rem;
@@ -4193,6 +4203,8 @@ select:focus {
 
 .event-match-list::-webkit-scrollbar-track,
 .billing-transaction-list::-webkit-scrollbar-track,
+.owned-event-list-card .owned-event-list::-webkit-scrollbar-track,
+.admin-manager-list::-webkit-scrollbar-track,
 .admin-modal-dialog::-webkit-scrollbar-track {
   background: transparent;
   margin: 0.45rem 0.2rem;
@@ -4200,6 +4212,8 @@ select:focus {
 
 .event-match-list::-webkit-scrollbar-thumb,
 .billing-transaction-list::-webkit-scrollbar-thumb,
+.owned-event-list-card .owned-event-list::-webkit-scrollbar-thumb,
+.admin-manager-list::-webkit-scrollbar-thumb,
 .admin-modal-dialog::-webkit-scrollbar-thumb {
   border-radius: 999px;
   border: 3px solid transparent;
@@ -4210,6 +4224,8 @@ select:focus {
 
 .event-match-list::-webkit-scrollbar-thumb:hover,
 .billing-transaction-list::-webkit-scrollbar-thumb:hover,
+.owned-event-list-card .owned-event-list::-webkit-scrollbar-thumb:hover,
+.admin-manager-list::-webkit-scrollbar-thumb:hover,
 .admin-modal-dialog::-webkit-scrollbar-thumb:hover {
   background-image: linear-gradient(180deg, rgba(14, 109, 104, 0.72), rgba(193, 141, 47, 0.62));
 }
@@ -4293,6 +4309,13 @@ select:focus {
 .owned-event-list {
   display: grid;
   gap: 0.9rem;
+}
+
+.owned-event-list-card .owned-event-list {
+  max-height: 24rem;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+  align-content: start;
 }
 
 .wallet-transaction-item,

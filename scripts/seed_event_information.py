@@ -286,18 +286,23 @@ def build_document(event_id: int, event_data: dict[str, Any], admin_id: int, tim
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Update MongoDB events from docs/event information.docx.")
+    parser.add_argument("--mongo-uri", default="", help="Override APP_MONGO_URI from .env.")
+    parser.add_argument("--db-name", default="", help="Override APP_MONGO_DB_NAME from .env.")
     parser.add_argument("--prune-extra", action="store_true", help="Delete events beyond the 10 seeded records.")
     args = parser.parse_args()
 
     settings = Settings.from_env()
-    client = MongoClient(settings.mongo_uri, serverSelectionTimeoutMS=5000)
-    db = client[settings.mongo_db_name]
+    mongo_uri = args.mongo_uri.strip() or settings.mongo_uri
+    db_name = args.db_name.strip() or settings.mongo_db_name
+    client = MongoClient(mongo_uri, serverSelectionTimeoutMS=5000)
+    db = client[db_name]
 
     db.users.create_index([("id", ASCENDING)], unique=True)
     db.users.create_index([("email", ASCENDING)], unique=True)
     db.events.create_index([("id", ASCENDING)], unique=True)
     sync_event_counter(db)
 
+    before_count = db.events.count_documents({})
     timestamp = utc_now()
     admin = db.users.find_one({"role": "admin"}, sort=[("id", ASCENDING)])
     if admin is None:
@@ -335,10 +340,25 @@ def main() -> None:
         deleted = int(delete_result.deleted_count)
 
     sync_event_counter(db)
+    after_count = db.events.count_documents({})
+    seeded_titles = list(
+        db.events.find(
+            {"id": {"$in": seeded_ids}},
+            {"_id": 0, "id": 1, "title": 1},
+        ).sort("id", ASCENDING)
+    )
     client.close()
 
+    print(f"Mongo URI: {mongo_uri}")
+    print(f"Database: {db_name}")
+    print("Collection: events")
+    print(f"Events before: {before_count}")
+    print(f"Events after: {after_count}")
     print(f"Updated {updated} event(s), inserted {inserted} event(s), deleted {deleted} extra event(s).")
     print(f"Seeded event IDs: {', '.join(str(event_id) for event_id in seeded_ids)}")
+    print("Seeded titles:")
+    for event in seeded_titles:
+        print(f"  {event['id']}. {event['title']}")
 
 
 if __name__ == "__main__":

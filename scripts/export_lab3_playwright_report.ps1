@@ -70,7 +70,7 @@ Add-Bullets $selection @(
 
 Add-Heading $selection '2. Workbook Summary' 2
 $summaryRows = @(
-  @('Feature / Function Sheet', 'Detailed Cases in Lab2', 'Implemented Playwright Scenario'),
+  @('Feature / Function Sheet', 'Detailed Cases in Lab3', 'Implemented Playwright Scenario'),
   @('User authentication', '10', 'AUTH: registration, invalid login validation, and successful login'),
   @('Event dashboard and event detail', '7', 'EVDASH: dashboard listing and event detail opening'),
   @('Ticket reservation and cancellation', '9', 'RESERVE: reserve and cancel on detail page'),

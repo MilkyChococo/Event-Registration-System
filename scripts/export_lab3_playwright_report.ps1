@@ -1,5 +1,5 @@
 param(
-  [string]$OutputPath = 'E:\se113.q21\docs\lab2\Lab2_Playwright_Automation_Report.docx'
+  [string]$OutputPath = 'E:\se113.q21\docs\lab3\Lab3_Playwright_Automation_Report.docx'
 )
 
 Set-StrictMode -Version Latest
@@ -56,14 +56,14 @@ $word.DisplayAlerts = 0
 $document = $word.Documents.Add()
 $selection = $word.Selection
 
-Add-Heading $selection 'Lab 2 Playwright Automation Report' 1
+Add-Heading $selection 'Lab 3 Playwright Automation Report' 1
 Add-Paragraph $selection 'Project: Event Registration System (EventHub Verify)'
-Add-Paragraph $selection 'Source workbook reviewed: E:\Downloads\Group11_Lab2.xlsx'
+Add-Paragraph $selection 'Source workbook reviewed: E:\Downloads\Group11_Lab3.xlsx'
 Add-Paragraph $selection 'Report date: 2026-03-31'
 
 Add-Heading $selection '1. Review Scope' 2
 Add-Bullets $selection @(
-  'Reviewed all 8 function sheets and 71 detailed cases from Group11_Lab2.xlsx.',
+  'Reviewed all 8 function sheets and 71 detailed cases from Group11_Lab3.xlsx.',
   'Mapped each function sheet to one executable Playwright automation scenario on the current system.',
   'Used a dedicated Playwright configuration with mock MongoDB and seeded demo data for stable execution.'
 )
@@ -84,14 +84,14 @@ Add-Table $document $selection $summaryRows | Out-Null
 
 Add-Heading $selection '3. Files Created for Automation' 2
 Add-Bullets $selection @(
-  'tests/e2e/lab2-review.spec.js',
-  'playwright.lab2.config.js',
-  'scripts/run_lab2_server.ps1',
-  'playwright-report/lab2/index.html'
+  'tests/e2e/lab3-review.spec.js',
+  'playwright.lab3.config.js',
+  'scripts/run_lab3_server.ps1',
+  'playwright-report/lab3/index.html'
 )
 
 Add-Heading $selection '4. Execution Command' 2
-Add-Paragraph $selection 'npx playwright test lab2-review.spec.js --config=playwright.lab2.config.js'
+Add-Paragraph $selection 'npx playwright test lab3-review.spec.js --config=playwright.lab3.config.js'
 
 Add-Heading $selection '5. Execution Result' 2
 Add-Bullets $selection @(
@@ -99,7 +99,7 @@ Add-Bullets $selection @(
   'Execution time: 13.6 seconds.',
   'Base URL: http://127.0.0.1:10104',
   'Environment: APP_USE_MOCK_DB=true, APP_SEED_DEMO=true',
-  'HTML report: E:\se113.q21\playwright-report\lab2\index.html'
+  'HTML report: E:\se113.q21\playwright-report\lab3\index.html'
 )
 
 Add-Heading $selection '6. Test Result by Function' 2
@@ -118,8 +118,8 @@ Add-Table $document $selection $resultRows | Out-Null
 
 Add-Heading $selection '7. Review Notes' 2
 Add-Bullets $selection @(
-  'This Playwright suite covers one representative automation path for each function sheet in Lab2.',
-  'Several detailed cases in Lab2 remain better suited to unit/API tests than UI automation, for example refresh-token handling, invalid callback signatures, rollback-on-failure, retry policy, and channel preference filtering.',
+  'This Playwright suite covers one representative automation path for each function sheet in Lab3.',
+  'Several detailed cases in Lab3 remain better suited to unit/API tests than UI automation, for example refresh-token handling, invalid callback signatures, rollback-on-failure, retry policy, and channel preference filtering.',
   'The implemented suite is appropriate as function-level automation evidence and can be cited together with the existing unittest/API suite in the project.'
 )
 

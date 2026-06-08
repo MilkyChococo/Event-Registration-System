@@ -144,6 +144,32 @@ async function createRequestViaApi(page, title) {
   return response.payload;
 }
 
+async function createApprovedEventViaAdmin(browser, title, overrides = {}) {
+  const adminContext = await browser.newContext();
+  const adminPage = await adminContext.newPage();
+  await loginAsAdmin(adminPage);
+  const response = await browserFetch(adminPage, "/api/me/owned-events", {
+    method: "POST",
+    body: {
+      title,
+      description: "Playwright-created approved event for Lab 3 review.",
+      category: "Workshop",
+      location: "District 1, Ho Chi Minh City",
+      venue_details: "Automation Hall, level 3.",
+      start_at: `${futureLocalDatetime(25, 19, 0)}:00`,
+      capacity: 30,
+      price: 5,
+      latitude: 10.77652,
+      longitude: 106.70098,
+      ...overrides,
+    },
+  });
+  expect(response.status).toBe(201);
+  expect(response.payload.approval_status).toBe("approved");
+  await adminContext.close();
+  return response.payload;
+}
+
 test.describe("Lab2 Playwright review mapped to workbook functions", () => {
   test("AUTH: registration, invalid login validation, and successful login", async ({ page }) => {
     const email = `lab2.auth.${Date.now()}@example.com`;
@@ -186,9 +212,15 @@ test.describe("Lab2 Playwright review mapped to workbook functions", () => {
     await expect(page.getByTestId("event-price")).toContainText("$");
   });
 
-  test("RESERVE: reserve one event and cancel it from detail page", async ({ page }) => {
+  test("RESERVE: reserve one event and cancel it from detail page", async ({ browser, page }) => {
+    const title = uniqueLabel("Lab3 Reserve");
+    await createApprovedEventViaAdmin(browser, title);
+
     await loginAsStudent(page);
-    const card = getEventCard(page, "AI Career Night");
+    await page.locator("#event-search").fill(title);
+    await page.locator("#event-search-submit").click();
+    const card = getEventCard(page, title);
+    await expect(card).toBeVisible();
     await card.getByRole("button", { name: "Reserve now" }).click();
     await expect(page.getByTestId("dashboard-registration-modal")).toBeVisible();
     await page.locator("#dashboard-registration-quantity").fill("1");
@@ -201,7 +233,13 @@ test.describe("Lab2 Playwright review mapped to workbook functions", () => {
     await expect(page.getByTestId("detail-status")).toContainText("Not reserved yet");
   });
 
-  test("CAPACITY: accepts quantity 5 after top-up and rejects quantity 6", async ({ page }) => {
+  test("CAPACITY: accepts quantity 5 after top-up and rejects quantity 6", async ({ browser, page }) => {
+    const title = uniqueLabel("Lab3 Capacity");
+    const event = await createApprovedEventViaAdmin(browser, title, {
+      capacity: 5,
+      price: 1,
+    });
+
     await loginAsStudent(page);
 
     const topUpResponse = await browserFetch(page, "/api/me/wallet/top-up", {
@@ -212,7 +250,7 @@ test.describe("Lab2 Playwright review mapped to workbook functions", () => {
     const confirmResponse = await browserFetch(page, "/api/me/wallet/top-up/confirm", { method: "POST" });
     expect(confirmResponse.status).toBe(200);
 
-    const eventId = await getEventIdByTitle(page, "AI Career Night");
+    const eventId = event.id;
     const quantityFive = await browserFetch(page, `/api/events/${eventId}/register`, {
       method: "POST",
       body: {

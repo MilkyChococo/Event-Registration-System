@@ -170,14 +170,14 @@ async function createApprovedEventViaAdmin(browser, title, overrides = {}) {
   return response.payload;
 }
 
-test.describe("Lab2 Playwright review mapped to workbook functions", () => {
+test.describe("Lab3 Playwright review mapped to workbook functions", () => {
   test("AUTH: registration, invalid login validation, and successful login", async ({ page }) => {
-    const email = `lab2.auth.${Date.now()}@example.com`;
+    const email = `lab3.auth.${Date.now()}@example.com`;
 
     await page.goto("/");
     await page.getByRole("button", { name: "Sign up" }).click();
     await expect(page.locator("#register-panel")).toBeVisible();
-    await page.locator("#register-name").fill("Lab2 Auth User");
+    await page.locator("#register-name").fill("Lab3 Auth User");
     await page.locator("#register-date-of-birth").fill("2004-05-20");
     await page.locator("#register-street-address").fill("12 Nguyen Van Bao");
     await page.locator("#register-phone-local").fill("912345678");
